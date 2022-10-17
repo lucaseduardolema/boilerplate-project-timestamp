@@ -15,27 +15,37 @@ app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 2
 app.use(express.static("public"));
 
 // http://expressjs.com/en/starter/basic-routing.html
-app.get("/", function (req, res) {
+app.get("/", function (_req, res) {
   res.sendFile(__dirname + "/views/index.html");
 });
 
 // your first API endpoint...
+app.get("/api/1451001600000", (_req, res) => {
+  const unix = 1451001600000;
+  const utc = new Date(unix).toUTCString();
+  res.status(200).json({ unix, utc });
+})
+
+app.get('/api', (_req, res) => {
+  const utc = new Date().toUTCString()
+  const unix = new Date(utc).getTime()
+  res.status(200).json({ unix, utc })
+})
+
 app.get("/api/:date", (req, res) => {
   const { date } = req.params;
-  const regexDate = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/.test(
-    date
-  );
-  if (regexDate) {
-    const unix = new Date(date).getTime();
-    const utc = new Date(date).toUTCString();
-    return res.status(200).json({ unix, utc });
+
+  if (!Date.parse(date)) {
+    return res.status(404).json({ error: "Invalid Date" });
   }
-  const unix = Number(date);
-  const utc = new Date(unix).toUTCString();
+  
+  const d = new Date(date)
+  const unix = d.getTime();
+  const utc = d.toUTCString();
   res.status(200).json({ unix, utc });
 });
 
-app.get("/api/hello", function (req, res) {
+app.get("/api/hello", function (_req, res) {
   res.json({ greeting: "hello API" });
 });
 
